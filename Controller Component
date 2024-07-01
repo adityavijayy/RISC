@@ -1,0 +1,42 @@
+library ieee;
+use ieee.std_logic_1164.all;
+
+entity controller is
+    Port (
+        clk : in std_logic; -- Clock input
+        rst : in std_logic; -- Reset input
+        opcode : out std_logic_vector(1 downto 0) -- Opcode output
+    );
+end entity controller;
+
+architecture behavioral of controller is
+    signal state : integer range 0 to 3 := 0; -- FSM state signal
+
+begin
+    process (clk, rst)
+    begin
+        if rst = '1' then
+            -- Reset state
+            state <= 0;
+            opcode <= (others => '0');
+        elsif rising_edge(clk) then
+            -- FSM state transition based on current state
+            case state is
+                when 0 =>
+                    opcode <= "00"; -- ADD operation
+                    state <= 1;
+                when 1 =>
+                    opcode <= "01"; -- SUB operation
+                    state <= 2;
+                when 2 =>
+                    opcode <= "11"; -- Memory operation
+                    state <= 3;
+                when 3 =>
+                    opcode <= "10"; -- NOP operation (No operation)
+                    state <= 0;
+                when others =>
+                    state <= 0; -- Default state
+            end case;
+        end if;
+    end process;
+end architecture behavioral;

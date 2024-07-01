@@ -1,0 +1,58 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
+entity datapath is
+    Port (
+        clk : in std_logic; -- Clock input
+        rst : in std_logic; -- Reset input
+        opcode : in std_logic_vector(1 downto 0); -- Opcode input
+        A, B : in std_logic_vector(5 downto 0); -- Data inputs
+        result : out std_logic_vector(5 downto 0); -- Result output
+        zero : out std_logic; -- Zero flag output
+        dataout : out std_logic_vector(5 downto 0) -- Output data
+    );
+end entity datapath;
+
+architecture behavioral of datapath is
+    signal aluout : std_logic_vector(5 downto 0);
+    signal datareg : std_logic_vector(5 downto 0);
+    signal zeroflag : std_logic;
+
+begin
+    process (clk, rst)
+    begin
+        if rst = '1' then
+            -- Reset state
+            datareg <= (others => '0');
+            zeroflag <= '0';
+        elsif rising_edge(clk) then
+            -- Datapath operations based on opcode
+            case opcode is
+                when "00" => -- ADD operation
+                    aluout <= std_logic_vector(unsigned(A) + unsigned(B));
+                when "01" => -- SUB operation
+                    aluout <= std_logic_vector(unsigned(A) - unsigned(B));
+                when others =>
+                    aluout <= (others => '0');
+            end case;
+            
+            -- Register file operation
+            if opcode /= "11" then -- if not memory operation
+                datareg <= aluout;
+            end if;
+            
+            -- Zero flag generation
+            if aluout = "000000" then
+                zeroflag <= '1';
+            else
+                zeroflag <= '0';
+            end if;
+        end if;
+    end process;
+
+    -- Outputs
+    result <= aluout;
+    zero <= zeroflag;
+    dataout <= datareg;
+end architecture behavioral;
